@@ -16,12 +16,12 @@ API info.
 
 ###### lines 27-32
 ```
-CLIENTID = 'e4aac13f'
-SECRET = '6593120f5e4360af47918d70c8df9924'
-REDIRECT_URI = 'https://bmatwifi.com'
-TOKEN = '7FKFvMHIWvOa2IEceBrNJ_RC_b01-k1pe4aac13f'
-ownerId = '10100'
-DATACENTER = 'ava'
+CLIENTID = '***'
+SECRET = '***'
+REDIRECT_URI = '***'
+TOKEN = '***'
+ownerId = '***'
+DATACENTER = '***'
 ```
 #### Optional: 
 pagesize (default is ''). This allows the page size of the API call to be adjusted from the default 500 clients. Added desired number between the ''. (ie '100' for 100 clients per call)
