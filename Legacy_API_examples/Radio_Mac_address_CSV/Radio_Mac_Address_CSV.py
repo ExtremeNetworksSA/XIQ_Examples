@@ -14,9 +14,13 @@ TOKEN = '***'
 ownerId = '***'
 DATACENTER = '***'
 
-# add/remove AP and switch lists
-ap_model_list = ['AP_1130','AP_121','AP_230','AP_30','AP_410C']
-switch_model_list = ['SR_2148P','X440_G2_12p_10_G4']
+## Change to correct values - Retail
+#CLIENTID = '44dcb001'
+#SECRET = 'f678f00b87484bedb144988e059bcaca'
+#REDIRECT_URI = 'https://127.0.0.1:4000'
+#TOKEN = '9knn-oN-rODQWWqU8tQIY5ykEvyHwRmt44dcb001'
+#ownerId = '94009'
+#DATACENTER = 'ava'
 
 # Used to build API call
 baseurl = 'https://{}.extremecloudiq.com'.format(DATACENTER)
@@ -31,19 +35,16 @@ HEADERS= {
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 # Global Objects
-locations = {}
-locations['Unassigned']={}
-modelset = []
+msg = ''
 pagesize = '400' #Value can be added to set page size. If nothing in quotes default value will be used (500)
 
 
-
 # function that makes the API call with the provided url
-def get_api_call(url, page=0, pageCount=0):
+def get_api_call(url, page=0, pageCount=0, pageSize=0):
     ## used for page if pagesize is set manually
     if page > 0:
         url = '{}&page={}'.format(url, page)
-    if pagesize:
+    if pageSize:
         url = "{}&pageSize={}".format(url, pagesize)
     ## the first call will not show as the data returned is used to collect the total count of Clients which is used for the page count
     #print(f"####{url}####")
@@ -52,7 +53,7 @@ def get_api_call(url, page=0, pageCount=0):
     else:
         print("Attemping call", end=": ")
     try:
-        r = requests.get(url, headers=HEADERS, timeout=60)
+        r = requests.get(url, headers=HEADERS, timeout=30)
     except HTTPError as http_err:
         #if pageCount != 0:
         #    secondtry.append(url)
@@ -69,35 +70,34 @@ def get_api_call(url, page=0, pageCount=0):
                 raise TypeError(f"API Failed with reason: {failmsg} - on API {url}")
         return data
 
-def checkLocations(data):
-    global locations
-    global modelset
+def collectRadioMac(data):
+    global msg
     for device in data['data']:
         #pprint(device)
         if device['simType'] == 'SIMULATED':
             print(f"Device {device['hostName']} ({device['macAddress']} - id[{device['deviceId']}]) is a simulated device and will not be tracked")
             continue
-        if device['locations'] == None:
-            #print(f"Device {device['hostName']} ({device['macAddress']} - id[{device['deviceId']}]) does not have a location assigned")
-            if device['model'] not in locations['Unassigned']:
-                locations['Unassigned'][device['model']] = 1
-            else:
-                locations['Unassigned'][device['model']] += 1
+        ap_id = device['deviceId']
+        ap_name = device['hostName']
+        url = "{}/xapi/v1/monitor/devices/{}?ownerId={}".format(baseurl, ap_id, ownerId)
+        try:
+            data = get_api_call(url)
+        except TypeError as e:
+            print(f"API failed with {e} - {device['hostName']}")
+            continue
+        except HTTPError as e:
+            print(f"API HTTP Error {e}- {device['hostName']}")
+            continue
+        except:
+            print(f"API failed with unknown API error:\n 	{url}- {device['hostName']}")		
+            continue
         else:
-            loclist = device['locations']
-            #print(loclist)
-            #mainLocation = '/'.join([str(elem) for elem in loclist])
-            if len(loclist) > 2:
-                mainLocation = loclist[2]
-            else:
-                mainLocation = 'Unassigned'
-                #print(mainLocation)
-            if mainLocation not in locations:
-                locations[mainLocation]={}
-            if device['model'] not in locations[mainLocation]:
-                locations[mainLocation][device['model']] = 1
-            else:
-                locations[mainLocation][device['model']] += 1
+            print("Successful Connection")
+            ap_info = data['data']
+            if "wifiInterfaces" in ap_info:
+                for radio in ap_info['wifiInterfaces']:
+                    if radio['macAddress']:
+                        msg += f"{ap_info['hostName']},{radio['interfaceName']}, {radio['macAddress']}\n"
 
     
 def retrieveDevices():
@@ -108,7 +108,7 @@ def retrieveDevices():
     url = "{}/xapi/v1/monitor/devices?ownerId={}".format(baseurl, ownerId)
     while page <= pageCount:    
         try:
-            data = get_api_call(url,page,pageCount)
+            data = get_api_call(url,page,pageCount,pagesize)
         except TypeError as e:
             print(f"API failed with {e}")
             raise SystemExit
@@ -128,37 +128,14 @@ def retrieveDevices():
                 pageCount = math.ceil(int(totalCount)/int(countInPage))
             firstCall = False
         page += 1
-        checkLocations(data)
-        
-retrieveDevices()
+        collectRadioMac(data)
 
-msg = "Location, Total APs, Total Switches, "
-for model in ap_model_list:
-    msg += "{}, ".format(model)
-for model in switch_model_list:
-    msg += "{}, ".format(model)
-msg += 'Total Devices,\n'
-for site, devices in sorted(locations.items()):
-    total_devices = sum(devices.values())
-    msg += "{}, ".format(site.replace(',',''))
-    #print("{}, {}, ".format(site, devices))
-    msg_line = ''
-    ap_count = 0
-    switch_count = 0
-    for model in devices:
-        if model in ap_model_list:
-            ap_count += devices[model]
-        elif model in switch_model_list:
-            switch_count += devices[model]
-        else:
-            print(f"Unable to find device with model {model}")
-    for model in ap_model_list + switch_model_list:
-        if model in devices:
-            msg_line += "{}, ".format(devices[model])
-        else:
-            msg_line += " 0, "
-    msg += "{},{},{}{},\n".format(ap_count,switch_count,msg_line,total_devices)
-#pprint(locations)
-#print(msg)
-with open(PATH+"/Location_Models.csv", 'w') as f:
-    f.write(msg)
+
+
+def main():  
+    global msg    
+    retrieveDevices()
+    print(msg)
+
+if __name__ == '__main__':
+    main()
