@@ -3,6 +3,7 @@ import requests
 import json
 import os
 import math
+import pandas as pd
 import multiprocessing
 from requests.exceptions import HTTPError
 from pprint import pprint
@@ -171,7 +172,10 @@ def retrieveDevices():
 def main():
     ap_list = retrieveDevices()
     pprint(ap_list)
-
+    df = pd.DataFrame(ap_list)
+    df.set_index('deviceid', inplace=True)
+    print(df)
+    #df.to_csv('test.csv', index=False)
 
 if __name__ == '__main__':
     main()
