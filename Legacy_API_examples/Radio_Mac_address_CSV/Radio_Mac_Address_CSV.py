@@ -14,13 +14,6 @@ TOKEN = '***'
 ownerId = '***'
 DATACENTER = '***'
 
-## Change to correct values - Retail
-#CLIENTID = '44dcb001'
-#SECRET = 'f678f00b87484bedb144988e059bcaca'
-#REDIRECT_URI = 'https://127.0.0.1:4000'
-#TOKEN = '9knn-oN-rODQWWqU8tQIY5ykEvyHwRmt44dcb001'
-#ownerId = '94009'
-#DATACENTER = 'ava'
 
 # Used to build API call
 baseurl = 'https://{}.extremecloudiq.com'.format(DATACENTER)
