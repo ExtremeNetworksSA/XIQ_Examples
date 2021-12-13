@@ -7,14 +7,14 @@ from requests.exceptions import HTTPError
 
 
 # Global Objects
-location_name = "SC-Lab|Office"
-cli_commands = ["show wir ap"]
+location_name = "SC-Lab|Downstairs"
+cli_commands = ["show idm","show capwap client"]
 pagesize = '' #Value can be added to set page size. If nothing in quotes default value will be used (500)
 totalretries = 5
 
 
 # generated xiq token with minimum "device:list, device, device:cli" permissions
-XIQ_token = "***"
+XIQ_token = "****"
 baseurl = "https://api.extremecloudiq.com"
 HEADERS = {"Accept": "application/json", "Content-Type": "application/json", "Authorization": "Bearer " + XIQ_token}
 
@@ -166,7 +166,7 @@ def sendCLI(site_device_ids, cli_commands):
     url = "{}/devices/:cli".format(baseurl)
     for count in range(1, totalretries):
         try:
-            data = post_api_call(url, payload, error_msg)
+            data = post_api_call(url, payload, error_msg, count=count)
         except TypeError as e:
             print(f"API failed with {e}")
             count+=1
