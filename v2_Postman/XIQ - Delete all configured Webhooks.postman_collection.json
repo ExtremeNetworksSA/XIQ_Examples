@@ -1,0 +1,205 @@
+{
+	"info": {
+		"_postman_id": "09509b70-2998-4eaf-b17a-5f391636189c",
+		"name": "XIQ - Delete all configured Webhooks",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login Basic Authentication",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"",
+							"pm.test(\"include access token\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"access_token\");",
+							"    console.log(pm.test)",
+							"});",
+							" pm.test(\"Response time is less than 500ms\", function () {",
+							"        pm.expect(pm.response.responseTime).to.be.below(1500);",
+							"    });",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"access_token\", jsonData['access_token']);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+				},
+				"url": {
+					"raw": "https://api.extremecloudiq.com/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Webhooks",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							" pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"var id_list = jsonData.map(webhook => webhook.id)",
+							"",
+							"pm.environment.set(\"webhookIds\",id_list);",
+							"pm.environment.set(\"count\", 0);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.extremecloudiq.com/subscriptions/webhook",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"subscriptions",
+						"webhook"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Webhook",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"count = pm.environment.get('count');",
+							"var webhookIds = pm.variables.get('webhookIds');",
+							"pm.variables.set('id', webhookIds.shift());",
+							"console.log(webhookIds.length)",
+							"pm.variables.set('webhookIds',webhookIds);",
+							"if (Array.isArray(webhookIds) && webhookIds.length > 0 ) {",
+							"    postman.setNextRequest('Delete Webhook');",
+							"} else {",
+							"    postman.setNextRequest(null);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+							"});",
+							"",
+							" pm.test(\"Response time is less than 500ms\", function () {",
+							"        pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"    });",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"enable_api_access\": true\n}"
+				},
+				"url": {
+					"raw": "https://api.extremecloudiq.com/subscriptions/webhook/{{id}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"subscriptions",
+						"webhook",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
