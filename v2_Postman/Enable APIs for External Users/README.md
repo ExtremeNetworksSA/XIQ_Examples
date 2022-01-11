@@ -9,4 +9,4 @@ In Postman, select File > Import. Select both json files and import them.
 on the top right select the XIQ Environment and click edit.
 Under the Current Value, replace username and password with the local admin credentials.
 
-Switch over to the collections and run the Enable API for External Users 
+Switch over to the collections and run the XIQ-Grant External Users API access collection

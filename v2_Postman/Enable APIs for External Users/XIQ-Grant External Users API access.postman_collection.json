@@ -1,211 +1,206 @@
 {
 	"info": {
-		"_postman_id": "76398903-07f7-4674-97de-9d09e87ebbea",
+		"_postman_id": "6c1c0060-82c5-4dd3-bce7-165e7953e096",
 		"name": "XIQ-Grant External Users API access",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Enable API for External Users",
-			"item": [
+			"name": "Login Basic Authentication",
+			"event": [
 				{
-					"name": "Login Basic Authentication",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Successful POST request\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-									"});",
-									"",
-									"pm.test(\"include access token\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"access_token\");",
-									"    console.log(pm.test)",
-									"});",
-									" pm.test(\"Response time is less than 500ms\", function () {",
-									"        pm.expect(pm.response.responseTime).to.be.below(1500);",
-									"    });",
-									"",
-									"var jsonData = JSON.parse(responseBody);",
-									"pm.environment.set(\"access_token\", jsonData['access_token']);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"",
+							"pm.test(\"include access token\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"access_token\");",
+							"    console.log(pm.test)",
+							"});",
+							" pm.test(\"Response time is less than 500ms\", function () {",
+							"        pm.expect(pm.response.responseTime).to.be.below(1500);",
+							"    });",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"access_token\", jsonData['access_token']);"
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
-						},
-						"url": {
-							"raw": "https://api.extremecloudiq.com/login",
-							"protocol": "https",
-							"host": [
-								"api",
-								"extremecloudiq",
-								"com"
-							],
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get External Users",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Successful POST request\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-									"});",
-									" pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"var userData = jsonData[\"data\"]",
-									"var id_list = userData.map(user => user.id)",
-									"",
-									"pm.environment.set(\"exUserIds\",id_list);",
-									"pm.environment.set(\"count\", 0);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://api.extremecloudiq.com/users/external",
-							"protocol": "https",
-							"host": [
-								"api",
-								"extremecloudiq",
-								"com"
-							],
-							"path": [
-								"users",
-								"external"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Patch External Users",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"count = pm.environment.get('count');",
-									"var exUserIds = pm.variables.get('exUserIds');",
-									"pm.variables.set('id', exUserIds.shift());",
-									"console.log(exUserIds.length)",
-									"pm.variables.set('exUserIds',exUserIds);",
-									"if (Array.isArray(exUserIds) && exUserIds.length > 0 ) {",
-									"    postman.setNextRequest('Patch External Users');",
-									"} else {",
-									"    postman.setNextRequest(null);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Successful POST request\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-									"});",
-									"",
-									" pm.test(\"Response time is less than 500ms\", function () {",
-									"        pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"    });",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\"enable_api_access\": true\n}"
-						},
-						"url": {
-							"raw": "https://api.extremecloudiq.com/users/external/{{id}}",
-							"protocol": "https",
-							"host": [
-								"api",
-								"extremecloudiq",
-								"com"
-							],
-							"path": [
-								"users",
-								"external",
-								"{{id}}"
-							]
-						}
-					},
-					"response": []
+						"type": "text/javascript"
+					}
 				}
-			]
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+				},
+				"url": {
+					"raw": "https://api.extremecloudiq.com/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get External Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							" pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"var userData = jsonData[\"data\"]",
+							"var id_list = userData.map(user => user.id)",
+							"",
+							"pm.environment.set(\"exUserIds\",id_list);",
+							"pm.environment.set(\"count\", 0);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.extremecloudiq.com/users/external",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"users",
+						"external"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Patch External Users",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"count = pm.environment.get('count');",
+							"var exUserIds = pm.variables.get('exUserIds');",
+							"pm.variables.set('id', exUserIds.shift());",
+							"console.log(exUserIds.length)",
+							"pm.variables.set('exUserIds',exUserIds);",
+							"if (Array.isArray(exUserIds) && exUserIds.length > 0 ) {",
+							"    postman.setNextRequest('Patch External Users');",
+							"} else {",
+							"    postman.setNextRequest(null);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"",
+							" pm.test(\"Response time is less than 500ms\", function () {",
+							"        pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"    });",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"enable_api_access\": true\n}"
+				},
+				"url": {
+					"raw": "https://api.extremecloudiq.com/users/external/{{id}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"extremecloudiq",
+						"com"
+					],
+					"path": [
+						"users",
+						"external",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
