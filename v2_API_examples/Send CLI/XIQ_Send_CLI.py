@@ -7,9 +7,11 @@ from requests.exceptions import HTTPError
 
 
 # Global Objects
-location_name = "SC-Lab|Downstairs"
+location_id = "769490635818704"
+# A list of Models to receive the cli commands. If none listed all devices with receive the cli commands at the location
+model_filter = ["AP_410C"]
 cli_commands = ["show idm","show capwap client"]
-pagesize = '' #Value can be added to set page size. If nothing in quotes default value will be used (500)
+pagesize = '' #Value can be added to set page size. If nothing in quotes default value will be used (10). Page Size, min = 1, max = 100
 totalretries = 5
 
 
@@ -25,17 +27,10 @@ def get_api_call(url, page=0, pageCount=0,  msg='', count = 1):
     ## used for page if pagesize is set manually
     url_parms = []
     if page > 0:
-        url_parms.append('page={}'.format(page))
+        url = url + '&page={}'.format(page)
     if pagesize:
-        url_parms.append("limit={}".format(pagesize))
-    if url_parms:
-        if len(url_parms) > 1:
-            parms_str = '&'.join(url_parms)
-        else:
-            parms_str = url_parms[0]
-        #print(parms_str)
-        url = "{}?{}".format(url, parms_str)
-        #print(url)
+        url = url + "&limit={}".format(pagesize)
+    #print(url)
     
     ## the first call will not show as the data returned is used to collect the total count of Clients which is used for the page count
     #print(f"####  {url}  ####")
@@ -81,13 +76,14 @@ def post_api_call(url, payload = {}, msg='', count = 1):
     
 
 # Retrieves IDs for all devices
-def retrieveDeviceIDs():
+def retrieveDeviceIDs(location_id):
+    global isModelFilter
     page = 0
     pageCount = 0
     firstCall = True
     device_data = {}
     error_msg = 'to receive device list'
-    url = "{}/devices".format(baseurl)
+    url = "{}/devices?locationId={}".format(baseurl,location_id)
     while page <= pageCount:    
         for count in range(1, totalretries):
             try:
@@ -119,40 +115,12 @@ def retrieveDeviceIDs():
             firstCall = False
         page += 1
         for device in data['data']:
-            device_data[device['id']] = device['hostname']
+            if isModelFilter:
+                if device['product_type'] in model_filter:
+                    device_data[device['id']] = device['hostname']
+            else:
+                device_data[device['id']] = device['hostname']
     return(device_data)
-
-def checkDeviceLocation(device_ids):
-    site_device_ids = []
-    error_msg = "to receive device locations"
-    payload = json.dumps({"ids": device_ids})
-    url = "{}/devices/location/:query".format(baseurl)
-    for count in range(1, totalretries):
-        try:
-            data = post_api_call(url, payload, error_msg)
-        except TypeError as e:
-            print(f"API failed with {e}")
-            count+=1
-            success = False
-        except HTTPError as e:
-            print(f"API HTTP Error {e}")
-            count+=1
-            success = False
-        except:
-            print(f"API failed {error_msg} with an unknown API error:\n 	{url}")		
-            count+=1
-            success = False
-        else:
-            print("Successful Connection")
-            success = True
-            for d_id, device in data.items():
-                if location_name == (device['location_unique_name']):
-                    site_device_ids.append(d_id)
-            break
-    if success == False:
-        print(f"API call {error_msg} failed too many times. Script is exiting...")
-        raise SystemExit
-    return(site_device_ids)
 
 def sendCLI(site_device_ids, cli_commands):
     error_msg = "to send CLI command"
@@ -188,21 +156,24 @@ def sendCLI(site_device_ids, cli_commands):
         raise SystemExit
     return(data)
 
+isModelFilter = False
+
 def main():
+    global isModelFilter
+    if model_filter:
+        isModelFilter = True
     #number of devices to gather location info simultaneously
     sizeofdevicebatch = 500
     #number of devices to run cli command on simultaneously
     sizeofclibatch = 50
     data = {}
-    ap_data = retrieveDeviceIDs()
+    ap_data = retrieveDeviceIDs(location_id)
     ap_ids = list(ap_data.keys())
+
     for i in range(0, len(ap_ids), sizeofdevicebatch):
         batch = ap_ids[i:i+sizeofdevicebatch]
-        site_apids = checkDeviceLocation(batch)
-        for j in range(0, len(site_apids), sizeofclibatch):
-            sitebatch = site_apids[j:j+sizeofclibatch]
-            response = sendCLI(sitebatch, cli_commands)
-            data.update(response['device_cli_outputs'])
+        response = sendCLI(batch, cli_commands)
+        data.update(response['device_cli_outputs'])
     print('\n\n')
     print()
     print("{:^30} {:^30} {:^30}".format("DEVICE NAME", "CLI COMMAND", "CLI RESPONSE"))
@@ -211,7 +182,7 @@ def main():
     print()
     for apname, responses in data.items():
         for response in responses:
-            print("{:^30} {:<30} {:<30}".format(ap_data[int(apname)], response['cli'], response['output']))
+            print("************************\n************************\n{:^30} {:<30} \n\n************************\n{}".format(ap_data[int(apname)], response['cli'], response['output']))
 
 if __name__ == '__main__':
 	main()
