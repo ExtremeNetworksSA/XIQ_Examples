@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 import json
+from tracemalloc import start
 import requests
 import pandas as pd
-import datetime
+import time
+from datetime import datetime
+from datetime import timedelta
 from requests.exceptions import HTTPError
 from pprint import pprint
 
+
 # Global Objects
-pagesize = '50' #Value can be added to set page size. If nothing in quotes default value will be used (500)
+pagesize = '50' #Value can be added to set page size (1-100). If nothing in quotes default value will be used (10)
 totalretries = 5
 
 ## TOKEN permission needs - "log:r"
@@ -17,13 +21,17 @@ HEADERS = {"Accept": "application/json", "Content-Type": "application/json", "Au
 
 # function that makes the API call with the provided url
 # if pageCount is defined (all calls per hour after initial call) if the call fails they will be added to the secondtry list 
-def get_api_call(url, page=0, pageCount=0,  msg='', count = 1):
+def get_api_call(url, page=0, pageCount=0,  startTime = '', endTime = '', msg='', count = 1):
     ## used for page if pagesize is set manually
     url_parms = []
     if page > 0:
         url_parms.append('page={}'.format(page))
     if pagesize:
         url_parms.append("limit={}".format(pagesize))
+    if startTime:
+        url_parms.append("startTime={}".format(startTime))
+    if endTime:
+        url_parms.append("endTime={}".format(endTime))
     if url_parms:
         if len(url_parms) > 1:
             parms_str = '&'.join(url_parms)
@@ -57,7 +65,7 @@ def get_api_call(url, page=0, pageCount=0,  msg='', count = 1):
         return data
 
 
-def retrieveAuditLogs():
+def retrieveAuditLogs(startTime='',endTime=''):
     page = 0
     pageCount = 0
     firstCall = True
@@ -67,7 +75,7 @@ def retrieveAuditLogs():
     while page <= pageCount:
         for count in range(1, totalretries):
             try:
-                data = get_api_call(url,page,pageCount, error_msg, count)
+                data = get_api_call(url=url,page=page,pageCount=pageCount, startTime=startTime, endTime=endTime, msg=error_msg, count=count)
             except TypeError as e:
                 print(f"API failed with {e}")
                 count+=1
@@ -104,10 +112,19 @@ def retrieveAuditLogs():
 #    return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
 
 def main():
-    log_data = retrieveAuditLogs()
+
+    todayDate = time.strftime('%Y-%m-%d') 
+    todayDateObj = datetime.strptime(todayDate, '%Y-%m-%d')
+    todayEpoch = (todayDateObj.strftime('%s')) + '000'
+    yesterday = todayDateObj - timedelta(days=1)
+    yesterdayDate = yesterday.strftime('%Y-%m-%d')
+    yesterdayEpoch = (yesterday.strftime('%s')) + '000'
+
+    log_data = retrieveAuditLogs(startTime=yesterdayEpoch, endTime=todayEpoch)
+
     df = pd.DataFrame(log_data)
     #df['timestamp'] = df['timestamp'].apply(epochTimeConverter)
-    df.to_csv("Historical_Audit_log.csv",index=False)
+    df.to_csv("{}_Audit_log.csv".format(yesterdayDate),index=False)
 
 if __name__ == '__main__':
 	main()

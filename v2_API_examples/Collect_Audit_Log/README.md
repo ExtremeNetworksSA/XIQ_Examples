@@ -1,10 +1,10 @@
 # XIQ - Export Audit Log to CSV
 ## XIQ_collect_audit_log.py
 ### Purpose
-This script will download the audit log using API and export it to a csv file
+This script will download yesterday's audit log using API and export it to a csv file
 
 ## User Input Data
-##### line 14
+##### line 18
 ```
 XIQ_token = "****"
 ```
