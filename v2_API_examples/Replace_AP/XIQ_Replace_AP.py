@@ -16,7 +16,7 @@ totalretries = 5
 
 
 # generated xiq token with minimum "device:list, device, device:cli" permissions
-XIQ_token = "***"
+XIQ_token = "****"
 baseurl = "https://api.extremecloudiq.com"
 HEADERS = {"Accept": "application/json", "Content-Type": "application/json", "Authorization": "Bearer " + XIQ_token}
 
@@ -298,7 +298,12 @@ def checkApBySerial(ap_serial):
     info="to check new AP by Serial Number"
     url = f"{baseurl}/devices?limit=100&sns={ap_serial}"
     response = __setup_get_api_call(url=url, error_msg=info)
-    return(response['data'][0])
+    if response['data']:
+        return(response['data'][0])
+    else:
+        print("These AP serial numbers were not able to be onboarded at this time. Please check the serial numbers and try again")
+        print("script is exiting...")
+        raise SystemExit
     
 def renameAP(ap_id, name):
     info="to rename AP '{}'".format(ap_id)
@@ -341,38 +346,39 @@ def main():
         raise SystemExit
     else:
         print("Validating")
-    #
+    # checks if the device exists based on the serial number. If the device is already onboarded in a different viq this will return with no devices.
     new_ap_data = checkApBySerial(new_AP_SN)
     print(f"AP '{new_AP_SN} is onboarded")
-    #
+    # Check if the model is the same as the previous device
     if new_ap_data['product_type'].strip() != ap_data['ap_model'].strip():
         print(f"The new AP is a {new_ap_data['product_type']} but the old device was a {ap_data['ap_model']}. Script is exiting...")
         raise SystemExit
-    #
+    # Get the device id for the new ap
     new_ap_id = new_ap_data['id']
-    #
+    # rename the new AP
     response = renameAP(new_ap_id, ap_data['ap_name'])
     if response != "Success":
         print(f"Failed to change name of {new_ap_id}")
         replaceSuccess = False
     else:
         print(response)
-    #
+    # Set the location of the new AP
     response = changeAPLocation(new_ap_id, ap_data['location'])
     if response != "Success":
         print(f"Failed to set location of {new_ap_id}")
         replaceSuccess = False
     else:
         print(response)
-    #
+    # Set the network policy of the new AP
     response = changeAPNetworkPolicy(new_ap_id,ap_data['network-policy'])
     if response != "Success":
         print(f"Failed to set the network-policy of {new_ap_id}")
         replaceSuccess = False
     else:
         print(response)
-    
+    # check if everything has worked so far
     if replaceSuccess:
+        # delete the old AP
         deleteAP(apid)
         if response != "Success":
             print(f"Failed to delete {apid} from XIQ!")

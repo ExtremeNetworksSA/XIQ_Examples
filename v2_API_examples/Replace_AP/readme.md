@@ -22,6 +22,12 @@ A token can be generated using the POST /auth/apitoken with the "device" and "de
 
 Documentation on generating tokens can be found on [Extreme Portal](https://extremeportal.force.com/ExtrArticleDetail?an=000102173)
 
+## Notes
+ - This script will not pull any device template overrides that may be applied to a device. 
+ - This script will stop if there are more than 1 device with the same name
+ - This script will stop if the device type of the new AP doesn't match the old device
+ - If any of the API's fail to apply to the new device the old device will not be deleted and may have to be deleted manually
+
 ## Requirements
 The following modules will need to be installed in order for the script to run.
 ```
