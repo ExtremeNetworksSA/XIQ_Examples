@@ -5,7 +5,7 @@ This script will collect all API device info and save it to a csv file. This can
 
 ## User Input Data
 ##### lines 9-10
-uncomment and enter XIQ credentials 
+uncomment, enter XIQ credentials, and comment line 13
 ```
 #XIQ_username = "enter your ExtremeCloudIQ Username"
 #XIQ_password = "enter your ExtremeCLoudIQ password"
