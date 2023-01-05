@@ -28,7 +28,7 @@ open the terminal to the location of the script and run this command.
 python XIQ_Device_Inventory.py
 ```
 ## CSV file
-upon running the script a csv file file will be created with the current date in the name followed by _XIQ_Inventory.csv. ie. 2023_01_05_XIQ_Inventory.csv. If a csv file already exists with that name if will be written over.
+upon running the script a csv file file will be created with the current date in the name followed by _XIQ_Inventory.csv. ie. 2023-01-05_XIQ_Inventory.csv. If a csv file already exists with that name if will be written over.
 
 ## Log file
 upon running the script a XIQ-Inventory.log file will be create. This log file will contain the amount of devices discovered each run. It will also contain information about any errors that may occur. Once the file is created by the script, the script will append to it for any additional runs.
