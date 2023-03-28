@@ -15,7 +15,22 @@ Email: tismith+api@extremenetworks.com
 Password: 
 Logged in and Got access token
 ```
-Upon entering the credentials, the script will begin to collect all of the location information. 
+After logging in with your XIQ credentials the script will check if the user has access to any external accounts. If the user has access to external account the script will give a numeric option of each of the XIQ instances the user has access to. Choose the one you would like to use.
+
+```
+Which VIQ would you like to export the location tree from?
+   0. BMAT_JP_Lab
+   1. BMAT_va2_Lab
+   2. SCS
+   3. BMAT_TIM_Lab (This is Your main account)
+
+Please enter 0 - 3: 
+```
+> NOTE: The user must have Administrator or Operator role in the logged in VIQ to be able to switch to another account. If you attempt with a user of a different role you will receive an Access Denied message, even tho the user has been granted external access
+
+If the user does not have any external access the script will continue using the users VIQ.
+
+The script will begin to collect all of the location information for the selected VIQ. 
 A message will appear
 ```
 Gathering Locations...
