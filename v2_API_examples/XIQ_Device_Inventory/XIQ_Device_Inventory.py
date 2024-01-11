@@ -9,7 +9,7 @@ import pandas as pd
 #XIQ_username = "enter your ExtremeCloudIQ Username"
 #XIQ_password = "enter your ExtremeCLoudIQ password"
 ####OR###
-## TOKEN permission needs - enduser, pcg:key
+## TOKEN permission needs - device:list
 XIQ_token = '****'
 
 today = time.strftime("%Y-%m-%d")
@@ -62,7 +62,7 @@ def retrieveDevices(pageSize):
     while page <= pageCount:
         url = URL + "/devices?page=" + str(page) + "&limit=" + str(pageSize)
 
-        # Get the next page of the ppsk users
+        # Get the next page of devices
         response = requests.get(url, headers=headers, verify = True)
         if response is None:
             log_msg = "Error retrieving Devices from XIQ - no response!"
